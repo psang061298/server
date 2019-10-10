@@ -24,7 +24,7 @@ class ProductListView(generics.ListCreateAPIView):
     def list(self, request):
         brand       = request.GET.get('brand', None)
         category    = request.GET.get('category', None)
-        queryset    = Product.objects.all()
+        queryset    = Product.objects.order_by('-id')
         if brand:
             queryset = queryset.filter(brand__name=brand)
         elif category:
