@@ -10,6 +10,9 @@ class OrderListView(generics.ListCreateAPIView):
     queryset            = Order.objects.all()
     serializer_class    = OrderSerializer
 
+    def get_queryset(self):
+        return self.queryset.order_by('-id')
+
     def post (self, request):
         serializer = OrderCreateUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():

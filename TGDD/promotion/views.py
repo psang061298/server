@@ -10,6 +10,9 @@ class PromotionListView(generics.ListCreateAPIView):
     queryset            = Promotion.objects.all()
     serializer_class    = PromotionSerializer
 
+    def get_queryset(self):
+        return self.queryset.order_by('-id')
+
     def post (self, request):
         serializer = PromotionCreateUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():

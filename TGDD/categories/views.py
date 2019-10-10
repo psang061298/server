@@ -11,14 +11,8 @@ class CategoryList(generics.ListCreateAPIView):
     queryset            = Category.objects.all()
     serializer_class    = CategorySerializer
 
-    # def create(self, request, *args, **kwargs):
-    #     cate = Category(created_at=timezone.now(), updated_at=timezone.now())
-    #     serializer = self.serializer_class(cate, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     else:
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        return self.queryset.order_by('-id')
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset            = Category.objects.all()

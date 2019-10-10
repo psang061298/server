@@ -8,6 +8,9 @@ class BrandListView(generics.ListCreateAPIView):
     queryset            = Brand.objects.all()
     serializer_class    = BrandSerializer
 
+    def get_queryset(self):
+        return self.queryset.order_by('-id')
+
 
 class BrandDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset            = Brand.objects.all()
