@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import Member
 from model_utils import Choices
+from django.db.models.signals import post_save
 
 
 class Order(models.Model):
@@ -20,3 +21,5 @@ class Order(models.Model):
 
     def __str__(self):
         return self.buyer
+
+    # def

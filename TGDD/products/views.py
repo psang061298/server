@@ -26,9 +26,9 @@ class ProductListView(generics.ListCreateAPIView):
         category    = request.GET.get('category', None)
         queryset    = Product.objects.order_by('-id')
         if brand:
-            queryset = queryset.filter(brand__name=brand)
+            queryset = queryset.filter(brand__id=brand)
         elif category:
-            queryset = queryset.filter(category__title=category)
+            queryset = queryset.filter(category__id=category)
         serializer = ProductSerializer(queryset, many=True)
         return Response(data=serializer.data)
 
