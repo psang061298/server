@@ -5,7 +5,7 @@ from django.db.models.signals import post_save
 
 
 class Order(models.Model):
-    _choices            = Choices('waiting', 'pending', 'success')
+    _choices            = Choices('waiting', 'pending', 'shipping', 'success', 'canceled')
     status              = models.CharField(max_length=20, null=True, choices=_choices, default='waiting')
     total_price         = models.FloatField()
     receiver_name       = models.CharField(max_length=100)
@@ -20,6 +20,4 @@ class Order(models.Model):
     REQUIRED_FIELDS = ['total_price', 'receiver_name', 'receiver_address', 'receiver_phone']
 
     def __str__(self):
-        return self.buyer
-
-    # def
+        return self.ordered_at
