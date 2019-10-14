@@ -5,17 +5,12 @@ from .serializers import ProductSerializer, ProductCreateUpdateSerializer
 from rest_framework import generics, status
 from rest_framework import filters
 from rest_framework.response import Response
-from .paginations import *
+# from .paginations import *
 
 
 class ProductListView(generics.ListCreateAPIView):
     queryset            = Product.objects.all()
     serializer_class    = ProductSerializer
-    
-    # filter_backends = [filters.SearchFilter]
-    # filter_fields = ['name', 'specifications']
-
-    # pagination_class = CustomPagination
 
     def post (self, request):
         serializer = ProductCreateUpdateSerializer(data=request.data, context={'request': request})
@@ -27,8 +22,10 @@ class ProductListView(generics.ListCreateAPIView):
     def list(self, request):
         brand       = request.GET.get('brand', None)
         category    = request.GET.get('category', None)
+        gt          = request.GET.get('gt', None)
+        lt          = request.GET.get('lt', None)
+        name        = request.GET.get('name', None)
         queryset    = Product.objects.order_by('-id')
-<<<<<<< HEAD
         
         if name:
             queryset = queryset.filter(name__icontains=name)
@@ -41,10 +38,10 @@ class ProductListView(generics.ListCreateAPIView):
                 queryset = queryset.filter(category=category, brand=brand, price__lte=(lt))
             else:
                 queryset = queryset.filter(category=category, brand=brand)
-=======
         if brand:
             queryset = queryset.filter(brand__id=brand)
->>>>>>> parent of b311765... Thêm filter theo khoảng giá, search theo name
+        if brand:
+            queryset = queryset.filter(brand__id=brand)
         elif category:
             queryset = queryset.filter(category__id=category)
         serializer = ProductSerializer(queryset, many=True)
