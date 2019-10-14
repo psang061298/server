@@ -11,8 +11,6 @@ class CategoryList(generics.ListCreateAPIView):
     queryset            = Category.objects.all()
     serializer_class    = CategorySerializer
 
-    def get_queryset(self):
-        return self.queryset.order_by('-id')
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset            = Category.objects.all()

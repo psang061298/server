@@ -4,11 +4,14 @@ from categories.models import Category
 from .serializers import ProductSerializer, ProductCreateUpdateSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
+from .paginations import *
 
 
 class ProductListView(generics.ListCreateAPIView):
     queryset            = Product.objects.all()
     serializer_class    = ProductSerializer
+
+    pagination_class = CustomPagination
 
     def post (self, request):
         serializer = ProductCreateUpdateSerializer(data=request.data, context={'request': request})
@@ -24,18 +27,7 @@ class ProductListView(generics.ListCreateAPIView):
         lt          = request.GET.get('lt', None)
         name        = request.GET.get('name', None)
         queryset    = Product.objects.order_by('-id')
-
-        if name:
-            queryset = queryset.filter(name__icontains=name)
-        elif category and brand:
-            if gt and lt:
-                queryset = queryset.filter(category=category, brand=brand, price__gte=(gt),price__lte=(lt))
-            elif gt:
-                queryset = queryset.filter(category=category, brand=brand, price__gte=(gt))
-            elif lt:
-                queryset = queryset.filter(category=category, brand=brand, price__lte=(lt))
-            else:
-                queryset = queryset.filter(category=category, brand=brand)
+        
         elif category:
             if gt and lt:
                 queryset = queryset.filter(category=category, price__gte=(gt),price__lte=(lt))
