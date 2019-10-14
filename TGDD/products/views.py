@@ -3,6 +3,7 @@ from .models import Product
 from categories.models import Category
 from .serializers import ProductSerializer, ProductCreateUpdateSerializer
 from rest_framework import generics, status
+from rest_framework import filters
 from rest_framework.response import Response
 from .paginations import *
 
@@ -10,6 +11,9 @@ from .paginations import *
 class ProductListView(generics.ListCreateAPIView):
     queryset            = Product.objects.all()
     serializer_class    = ProductSerializer
+    
+    # filter_backends = [filters.SearchFilter]
+    # filter_fields = ['name', 'specifications']
 
     # pagination_class = CustomPagination
 
@@ -23,10 +27,8 @@ class ProductListView(generics.ListCreateAPIView):
     def list(self, request):
         brand       = request.GET.get('brand', None)
         category    = request.GET.get('category', None)
-        gt          = request.GET.get('gt', None)
-        lt          = request.GET.get('lt', None)
-        name        = request.GET.get('name', None)
         queryset    = Product.objects.order_by('-id')
+<<<<<<< HEAD
         
         if name:
             queryset = queryset.filter(name__icontains=name)
@@ -39,32 +41,12 @@ class ProductListView(generics.ListCreateAPIView):
                 queryset = queryset.filter(category=category, brand=brand, price__lte=(lt))
             else:
                 queryset = queryset.filter(category=category, brand=brand)
+=======
+        if brand:
+            queryset = queryset.filter(brand__id=brand)
+>>>>>>> parent of b311765... Thêm filter theo khoảng giá, search theo name
         elif category:
-            if gt and lt:
-                queryset = queryset.filter(category=category, price__gte=(gt),price__lte=(lt))
-            elif gt:
-                queryset = queryset.filter(category=category, price__gte=(gt))
-            elif lt:
-                queryset = queryset.filter(category=category, price__lte=(lt))
-            else:
-                queryset = queryset.filter(category=category)
-        elif brand:
-            if gt and lt:
-                queryset = queryset.filter(brand=brand, price__gte=(gt),price__lte=(lt))
-            elif gt:
-                queryset = queryset.filter(brand=brand, price__gte=(gt))
-            elif lt:
-                queryset = queryset.filter(brand=brand, price__lte=(lt))
-            else:
-                queryset = queryset.filter(brand=brand)
-        else:
-            if gt and lt:
-                queryset = queryset.filter(price__gte=(gt),price__lte=(lt))
-            elif gt:
-                queryset = queryset.filter(price__gte=(gt))
-            else:
-                queryset = queryset.filter(price__lte=(lt))
-
+            queryset = queryset.filter(category__id=category)
         serializer = ProductSerializer(queryset, many=True)
         return Response(data=serializer.data)
 

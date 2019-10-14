@@ -21,4 +21,4 @@ class Product(models.Model):
     REQUIRED_FIELDS = ['name', 'brand', 'price', 'quantity', 'category']
 
     def __str__(self):
-        return "%f" % self.price
+        return self.name
