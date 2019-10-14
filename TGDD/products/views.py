@@ -5,11 +5,13 @@ from .serializers import ProductSerializer, ProductCreateUpdateSerializer
 from rest_framework import generics, status
 from rest_framework import filters
 from rest_framework.response import Response
+from .paginations import *
 
 
 class ProductListView(generics.ListCreateAPIView):
     queryset            = Product.objects.all()
     serializer_class    = ProductSerializer
+    pagination_class = CustomPagination
     
     # filter_backends = [filters.SearchFilter]
     # filter_fields = ['name', 'specifications']
@@ -25,6 +27,7 @@ class ProductListView(generics.ListCreateAPIView):
         brand       = request.GET.get('brand', None)
         category    = request.GET.get('category', None)
         queryset    = Product.objects.order_by('-id')
+        
         if brand:
             queryset = queryset.filter(brand__id=brand)
         elif category:
