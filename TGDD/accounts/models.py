@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+from django.db.models.signals import post_save
+# from cart.models import Cart
 
 
 class UserManager(BaseUserManager):
@@ -102,3 +104,8 @@ class Member(AbstractBaseUser):
         return self.active
 
     objects = UserManager()
+
+# def create_cart(customer, **kwargs):
+#     cart = Cart.objects.create(customer=kwargs['instance'])
+
+# post_save.connect(create_cart(Member))
