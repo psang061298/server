@@ -11,6 +11,9 @@ class CategoryList(generics.ListCreateAPIView):
     queryset            = Category.objects.all()
     serializer_class    = CategorySerializer
 
+    def get_queryset(self):
+        return self.queryset.filter(is_active=True)
+
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset            = Category.objects.all()
