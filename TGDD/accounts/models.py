@@ -73,7 +73,7 @@ class Member(AbstractBaseUser):
 
     def get_full_name(self):
         # The user is identified by their email address
-        return self.fullname
+        return self.email
 
     def __str__(self):              # __unicode__ on Python 2
         return self.email
@@ -104,8 +104,3 @@ class Member(AbstractBaseUser):
         return self.active
 
     objects = UserManager()
-
-# def create_cart(customer, **kwargs):
-#     cart = Cart.objects.create(customer=kwargs['instance'])
-
-# post_save.connect(create_cart(Member))

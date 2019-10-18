@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Member
+from cart.models import Cart
 
 
 class UserListSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializer
@@ -17,6 +18,8 @@ class UserListSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializ
         member = super(UserListSerializer, self).create(validated_data)
         member.set_password(validated_data['password'])
         member.save()
+        cart = Cart(customer=member)
+        cart.save()
         return member
 
 class UserDetailSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializer

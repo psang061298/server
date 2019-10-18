@@ -5,6 +5,7 @@ from .serializers import UserListSerializer, UserDetailSerializer
 from django_filters.rest_framework import DjangoFilterBackend as BasicDjangoFilterBackend
 from url_filter.integrations.drf import DjangoFilterBackend
 from rest_framework import filters
+from cart.models import Cart
 
 # Create your views here.
 class UserList(generics.ListCreateAPIView):
@@ -18,8 +19,7 @@ class UserList(generics.ListCreateAPIView):
     def get_queryset(self):
         return self.queryset.order_by('-id')
 
-    def perform_create(self, serializer):
-        serializer.save(active=True)
+    # def perform_create(self, serializer):
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Member.objects.all()
