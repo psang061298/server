@@ -8,7 +8,7 @@ class Cart(models.Model):
     customer = models.OneToOneField(Member, on_delete=models.CASCADE, primary_key=True,)
 
     def __str__(self):
-        return "Đây là giỏ hàng của khách hàng %s" % self.customer.fullname
+        return "Đây là giỏ hàng của khách hàng %s" % self.customer.email
 
 class CartItem(models.Model):
     product     = models.ForeignKey(Product, on_delete=models.CASCADE)
