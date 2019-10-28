@@ -3,11 +3,11 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 from django.db.models.signals import post_save
-# from cart.models import Cart
+from model_utils import Choices
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, address=None, phone=None, avatar=None):
+    def create_user(self, email, password=None, avatar=None, gender=None):
         """
         Creates and saves a User with the given email and password.
         """
@@ -19,14 +19,13 @@ class UserManager(BaseUserManager):
         )
 
         user.set_password(password)
-        user.address = address
-        user.phone = phone
         user.avatar = avatar
+        user.gender = gender
         user.active = True
         user.save(using=self._db)
         return user
 
-    def create_staffuser(self, email, password, address, phone, avatar):
+    def create_staffuser(self, email, password, avatar, gender):
         """
         Creates and saves a staff user with the given email and password.
         """
@@ -35,9 +34,6 @@ class UserManager(BaseUserManager):
             password=password
         )
         user.staff = True
-        # user.address = address
-        # user.phone = phone
-        # user.avatar = avatar
         user.save(using=self._db)
         return user
 
@@ -60,13 +56,14 @@ class Member(AbstractBaseUser):
         max_length=255,
         unique=True,
     )
-    avatar      = models.CharField(max_length=255, default='', null=True, blank=True)
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
-    active      = models.BooleanField(default=True)
-    staff       = models.BooleanField(default=False) # a admin user; non super-user
-    admin       = models.BooleanField(default=False) # a superuser
-    # notice the absence of a "Password field", that's built in.
+    avatar          = models.CharField(max_length=255, default='', null=True, blank=True)
+    gender_choices  = Choices('male', 'female')
+    gender          = models.CharField(max_length=6, null=True, blank=True, choices=gender_choices, default='male')
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+    active          = models.BooleanField(default=True)
+    staff           = models.BooleanField(default=False) # a admin user; non super-user
+    admin           = models.BooleanField(default=False) # a superuser
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [] # Email & Password are required by default.

@@ -4,6 +4,9 @@ from .serializers import OrderSerializer, OrderCreateUpdateSerializer
 from rest_framework import generics, status
 from rest_framework import filters
 from rest_framework.response import Response
+import stripe
+from accounts.models import Member
+from TGDD.settings import STRIPE_SECRET_KEY
 
 
 class OrderListView(generics.ListCreateAPIView):
@@ -14,10 +17,26 @@ class OrderListView(generics.ListCreateAPIView):
         return self.queryset.order_by('-id')
 
     def post (self, request):
+        stripe.api_key = STRIPE_SECRET_KEY
+
+        stripe_customer = stripe.Customer.create(
+            card = request.data['token'],
+            description = Member.objects.get(pk = request.data['buyer'])
+        )
+
+        charge = stripe.Charge.create (
+            amount = request.data['total_price'],
+            currency='usd',
+            description = request.data['description'],
+            customer=stripe_customer,
+        )
+        print(charge.billing_details.address.line1)
         serializer = OrderCreateUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(charge, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
