@@ -3,6 +3,7 @@ from .models import Category
 from .serializers import CategorySerializer, CategoryDetailSerializer
 from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
 from .permissions import IsAdminOrReadOnly
 
 
@@ -28,4 +29,4 @@ class CategoryList(generics.ListCreateAPIView):
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset            = Category.objects.all()
     serializer_class    = CategoryDetailSerializer
-    permission_classes  = (IsAdminOrReadOnly,)
+    permission_classes  = (IsAdminUser,)

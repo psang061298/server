@@ -56,6 +56,7 @@ class Member(AbstractBaseUser):
         max_length=255,
         unique=True,
     )
+    fullname        = models.CharField(max_length=100)
     avatar          = models.CharField(max_length=255, default='', null=True, blank=True)
     gender_choices  = Choices('male', 'female')
     gender          = models.CharField(max_length=6, null=True, blank=True, choices=gender_choices, default='male')
