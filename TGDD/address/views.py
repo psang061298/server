@@ -13,7 +13,7 @@ class AddressListView(generics.ListCreateAPIView):
     def get_queryset(self):
         if self.request.user.is_admin:
             return self.queryset.order_by('-id')
-        return self.queryset.filter(member=self.request.user)
+        return self.queryset.filter(member=self.request.user).order_by('-id')
 
 
 class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
