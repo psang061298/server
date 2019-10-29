@@ -7,7 +7,7 @@ from model_utils import Choices
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, avatar=None, gender=None):
+    def create_user(self, email, password=None, fullname = None, avatar=None, gender=None):
         """
         Creates and saves a User with the given email and password.
         """
@@ -25,7 +25,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_staffuser(self, email, password, avatar, gender):
+    def create_staffuser(self, email, password, fullname, avatar, gender):
         """
         Creates and saves a staff user with the given email and password.
         """
@@ -37,7 +37,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, address, phone, avatar):
+    def create_superuser(self, email, password, fullname ,address, phone, avatar):
         """
         Creates and saves a superuser with the given email and password.
         """

@@ -10,7 +10,7 @@ class UserListSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializ
     class Meta:
         model = Member
         extra_kwargs = {'password': {'write_only': True}}
-        fields = ['id', 'email', 'password', 'gender', 'avatar', 'shipping_addresses', 'active', 'created_at', 'updated_at']
+        fields = ['id', 'email', 'password', 'fullname', 'gender', 'avatar', 'shipping_addresses', 'active', 'created_at', 'updated_at']
         # fields = '__all__'
         read_only_fields = ('active', 'created_at', 'updated_at')
         depth = 2
@@ -29,13 +29,14 @@ class UserDetailSerializer(serializers.ModelSerializer): #HyperlinkedModelSerial
     password   = serializers.CharField(style={'input_type': 'password'})
     class Meta:
         model = Member
-        fields = ['id', 'email', 'password', 'gender', 'avatar', 'active', 'created_at', 'updated_at']
+        fields = ['id', 'email', 'password', 'fullname' ,'gender', 'avatar', 'active', 'created_at', 'updated_at']
         read_only_fields = ('email',)
 
     def update(self, instance, validated_data):
         instance.email      = validated_data.get('email', instance.email)
         instance.avatar     = validated_data.get('avatar', instance.avatar)
-        instance.gender     = validated_data.get('gender', instance.avatar)
+        instance.fullname   = validated_data.get('fullname', instance.fullname)
+        instance.gender     = validated_data.get('gender', instance.gender)
         instance.active     = validated_data.get('active', instance.active)
         instance.set_password(validated_data.get('password'))
         instance.save()
