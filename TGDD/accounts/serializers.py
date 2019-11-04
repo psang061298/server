@@ -10,10 +10,10 @@ class UserListSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializ
     class Meta:
         model = Member
         extra_kwargs = {'password': {'write_only': True}}
-        fields = ['id', 'email', 'password', 'fullname', 'gender', 'avatar', 'shipping_addresses', 'active', 'created_at', 'updated_at']
+        fields = ['id', 'email', 'password', 'fullname', 'gender', 'avatar', 'addresses', 'active', 'created_at', 'updated_at']
         # fields = '__all__'
         read_only_fields = ('active', 'created_at', 'updated_at')
-        depth = 2
+        depth = 1
 
     def create(self, validated_data):
         member = super(UserListSerializer, self).create(validated_data)

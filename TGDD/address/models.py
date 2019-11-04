@@ -6,7 +6,7 @@ class Address (models.Model):
     fullname    = models.CharField(max_length=100)
     address     = models.TextField()
     phone       = models.CharField(max_length=20)
-    member      = models.ForeignKey(Member, related_name='shipping_addresses', on_delete=models.CASCADE)
+    member      = models.ForeignKey(Member, related_name='addresses', on_delete=models.CASCADE)
 
     REQUIRED_FIELDS = ['fullname', 'address', 'phone']
 

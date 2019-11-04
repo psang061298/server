@@ -11,7 +11,7 @@ class PromotionSerializer (serializers.ModelSerializer):
         model   = Promotion
         fields  = ['id', 'title', 'category', 'percent', 'start_date', 'end_date', 'description', 'image', 'created_at', 'updated_at']
         # read_only_fields = ('description', 'images', 'is_active', 'specifications', 'created_at', 'updated_at')
-        depth   = 2
+        depth   = 1
 
 
 class PromotionCreateUpdateSerializer (serializers.ModelSerializer):
