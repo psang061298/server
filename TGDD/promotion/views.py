@@ -24,10 +24,11 @@ class PromotionListView(generics.ListCreateAPIView):
                 return Response('Only the admin user can perform this action!', status=status.HTTP_400_BAD_REQUEST)
             else:
                 if serializer.is_valid():
-                    # promotion = Promotion.objects.get(pk=serializer.data['category'], start_date <= date.today(), end_date > date.today())
-                    # if promotion != None:
-                    #     return Response("Duplicated available promotion for the category number "+request.data['category']+" at a time!", status=status.HTTP_400_BAD_REQUEST)
-                    serializer.save()
+                    pk = serializer.data['category']
+                    promotion = Promotion.objects.get(pk=pk, start_date<=date.today(), end_date>date.today())
+                    if promotion != None:
+                        return Response("Duplicated available promotion for the category number "+request.data['category']+" at a time!", status=status.HTTP_400_BAD_REQUEST)
+                    # serializer.save()
                     return Response(serializer.data['category'], status=status.HTTP_201_CREATED)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
