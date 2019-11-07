@@ -32,7 +32,10 @@ class OrderListView(generics.ListCreateAPIView):
             if item.final_price > 0:
                 total_price += item.final_price
             else:
-                total_price += item.price
+                total_price += item.product.price
+        print(total_price)
+        if total_price > 99999999:
+            return Response("Total price must be no more than 99999999 VND! Please adjust the quantity of items in your cart!")
 
         stripe.api_key = STRIPE_SECRET_KEY
 
