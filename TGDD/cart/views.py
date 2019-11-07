@@ -103,3 +103,8 @@ class CartItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         cartItem = self.get_object(pk)
         cartItem.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CartItemStatistics(generics.ListAPIView):
+    queryset            = CartItem.objects.filter(paid=True).order_by('-quantity')
+    serializer_class    = CartItemSerializer
