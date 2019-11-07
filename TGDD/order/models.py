@@ -12,7 +12,7 @@ class Order(models.Model):
     shipping_address    = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='shipping_address')
     description         = models.CharField(max_length=255, null=True, blank=True)
     token               = models.TextField(null=True, blank=True)
-    receipt_link        = models.TextField(null=True, blank=True)
+    receipt_url         = models.TextField(null=True, blank=True)
     buyer               = models.ForeignKey(Member, on_delete=models.CASCADE)
     ordered_at          = models.DateTimeField(auto_now_add=True)
     updated_at          = models.DateTimeField(auto_now=True)
