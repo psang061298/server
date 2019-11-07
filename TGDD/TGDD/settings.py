@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders',
     'accounts',
     'address',
     'categories',
@@ -49,13 +48,15 @@ INSTALLED_APPS = [
     'promotion',
     'cart',
     'order',
-    'upload'
+    'upload',
+    'corsheaders',
 ]
 
 cloudinary.config(cloud_name='dyjkyzllt', api_key='479915316619922', api_secret='rDoLDGf1vzyqR3RHkZJf8SLzw9Y')
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,7 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
