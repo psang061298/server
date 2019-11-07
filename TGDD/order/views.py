@@ -29,7 +29,10 @@ class OrderListView(generics.ListCreateAPIView):
         paid_items = CartItem.objects.filter(cart=request.user.id, paid=False)
         total_price = 0
         for item in paid_items:
-            total_price += item.final_price
+            if item.final_price > 0:
+                total_price += item.final_price
+            else:
+                total_price += item.price
 
         stripe.api_key = STRIPE_SECRET_KEY
 
@@ -53,11 +56,13 @@ class OrderListView(generics.ListCreateAPIView):
             for item in paid_items:
                 item.paid       = True
                 item.save()
+                print(item.paid)
                 pro             = Product.objects.get(pk=item.product.id)
                 pro.quantity    = pro.quantity - item.quantity
                 pro.save()
+                print(pro.quantity)
 
-            serializer.save(buyer=request.user, token=charge.id, total_price=total_price)
+            serializer.save(buyer=request.user, token=charge.id, total_price=total_price, receipt_url=charge.receipt_url)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
