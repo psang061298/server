@@ -11,8 +11,6 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from cart.models import CartItem
 from products.models import Product
-from promotion.models import Promotion
-from datetime import date
 
 
 class OrderListView(generics.ListCreateAPIView):
@@ -28,41 +26,38 @@ class OrderListView(generics.ListCreateAPIView):
         return self.queryset.filter(buyer=self.request.user).order_by('-id')
 
     def post (self, request):
-        promotions = Promotion.objects.all()
         paid_items = CartItem.objects.filter(cart=request.user.id, paid=False)
+        total_price = 0
         for item in paid_items:
-            for p in promotions:
-                if p.start_date <= date.today() and p.end_date > date.today() and item.product.category == p.category:
-                    sale_price = item.product.price * (100 - p.percent) / 100
-                    # item.final_price = sale_price
-                    print(sale_price)
-                    break
+            total_price += item.final_price
 
-        # stripe.api_key = STRIPE_SECRET_KEY
+        stripe.api_key = STRIPE_SECRET_KEY
 
-        # stripe_customer = stripe.Customer.create(
-        #     card = request.data['token'],
-        #     description = request.user.fullname
-        # )
+        stripe_customer = stripe.Customer.create(
+            card = request.data['token'],
+            description = request.user.fullname
+        )
 
-        # charge = stripe.Charge.create (
-        #     amount = request.data['total_price'],
-        #     currency='VND',
-        #     description = request.data['description'],
-        #     customer=stripe_customer,
-        # )
-        # print(charge.id)
-        # print(charge)
+        description = ""
+        if request.data['description'] != None and request.data['description'] != "":
+            description = request.data['description']
+        charge = stripe.Charge.create (
+            amount = int(total_price),
+            currency='VND',
+            description = description,
+            customer=stripe_customer,
+        )
+        print(charge)
         serializer = OrderCreateUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            # serializer.save(buyer=request.user, token=charge.id)
-            # for item in paid_items:
-                # item.paid = True
-                # item.save()
-                # pro             = Product.objects.get(pk=item.product.id)
-                # pro.quantity    = pro.quantity - item.quantity
-                # pro.save()
+            for item in paid_items:
+                item.paid       = True
+                item.save()
+                pro             = Product.objects.get(pk=item.product.id)
+                pro.quantity    = pro.quantity - item.quantity
+                pro.save()
 
+            serializer.save(buyer=request.user, token=charge.id, total_price=total_price)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

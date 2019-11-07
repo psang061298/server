@@ -24,12 +24,23 @@ class PromotionListView(generics.ListCreateAPIView):
                 return Response('Only the admin user can perform this action!', status=status.HTTP_400_BAD_REQUEST)
             else:
                 if serializer.is_valid():
-                    pk = serializer.data['category']
-                    promotion = Promotion.objects.get(pk=pk, start_date<=date.today(), end_date>date.today())
-                    if promotion != None:
-                        return Response("Duplicated available promotion for the category number "+request.data['category']+" at a time!", status=status.HTTP_400_BAD_REQUEST)
-                    # serializer.save()
-                    return Response(serializer.data['category'], status=status.HTTP_201_CREATED)
+                    cate            = Category.objects.get(pk=serializer.data['category'])
+                    start_day_str   = serializer.data['start_date']
+                    end_day_str     = serializer.data['end_date']
+                    start_date      = date(int(start_day_str[6:10]), int(start_day_str[3:5]), int(start_day_str[0:2]))
+                    end_date        = date(int(end_day_str[6:10]), int(end_day_str[3:5]), int(end_day_str[0:2]))
+                    if start_date < date.today():
+                        return Response('Invalid start date! Start date must be today or later.')
+                    if start_date >= end_date:
+                        return Response('Invalid end date! End date must be greater than start date.')
+
+                    promotions = Promotion.objects.filter(category=cate)
+                    for promotion in promotions:
+                        if promotion.start_date <= start_date and start_date < promotion.end_date:
+                          return Response("Duplicated promotion for that category at a time!")
+
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
