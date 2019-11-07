@@ -9,7 +9,7 @@ class OrderSerializer (serializers.ModelSerializer):
     updated_at  = serializers.DateTimeField(format="%H:%M:%S %d-%m-%Y", read_only=True)
     class Meta:
         model   = Order
-        fields  = ['id', 'status', 'total_price', 'shipping_address', 'bill_address', 'description', 'token', 'buyer', 'ordered_at', 'updated_at']
+        fields  = ['id', 'status', 'total_price', 'shipping_address', 'bill_address', 'description', 'token', 'receipt_url', 'buyer', 'ordered_at', 'updated_at']
         depth   = 1
 
 class OrderCreateUpdateSerializer (serializers.ModelSerializer):
@@ -17,5 +17,5 @@ class OrderCreateUpdateSerializer (serializers.ModelSerializer):
     updated_at  = serializers.DateTimeField(format="%H:%M:%S %d-%m-%Y", read_only=True)
     class Meta:
         model   = Order
-        fields  = ['id', 'status', 'total_price', 'shipping_address', 'bill_address', 'description', 'token', 'buyer', 'ordered_at', 'updated_at']
+        fields  = ['id', 'status', 'total_price', 'shipping_address', 'bill_address', 'description', 'token', 'receipt_url', 'buyer', 'ordered_at', 'updated_at']
         read_only_fields = ('buyer', 'total_price')

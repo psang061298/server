@@ -50,10 +50,10 @@ class OrderListView(generics.ListCreateAPIView):
             description = description,
             customer=stripe_customer,
         )
-        print(charge)
         serializer = OrderCreateUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             for item in paid_items:
+                print(item)
                 item.paid       = True
                 item.save()
                 print(item.paid)
