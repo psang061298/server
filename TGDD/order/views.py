@@ -33,7 +33,8 @@ class OrderListView(generics.ListCreateAPIView):
                 total_price += item.final_price
             else:
                 total_price += item.product.price
-        print(total_price)
+        if total_price == 0:
+            return Response("Can not make a payment! Your cart is empty.")
         if total_price > 99999999:
             return Response("Total price must be no more than 99999999 VND! Please adjust the quantity of items in your cart!")
 
@@ -53,6 +54,7 @@ class OrderListView(generics.ListCreateAPIView):
             description = description,
             customer=stripe_customer,
         )
+        print(charge)
         serializer = OrderCreateUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             for item in paid_items:
