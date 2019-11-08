@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import url
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from cart.views import CartItemStatistics
+from order.views import StatisticsView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,6 +32,6 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('upload_image/', include('upload.urls')),
-    path('statistics/', CartItemStatistics.as_view()),
+    path('statistics/', StatisticsView.as_view()),
 
 ]

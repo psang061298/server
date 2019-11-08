@@ -1,6 +1,6 @@
 from django.urls import include, path
 from django.conf.urls import url
-from .views import CartListView, CartItemListView, CartItemDetailView, CartItemStatistics
+from .views import CartListView, CartItemListView, CartItemDetailView
 from rest_framework import routers
 
 

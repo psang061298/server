@@ -20,4 +20,4 @@ class Order(models.Model):
     REQUIRED_FIELDS = ['bill_address', 'shipping_address', 'receiver_name', 'receiver_address', 'receiver_phone']
 
     def __str__(self):
-        return self.total_price
+        return "Đơn hàng của khách hàng %s" % self.buyer.fullname
