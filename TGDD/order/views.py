@@ -109,7 +109,7 @@ class StatisticsView(generics.ListAPIView):
         
         if month is not None:
             month = int(month)
-            all_orders = Order.objects.all()
+            all_orders = Order.objects.all().order_by('-id')
             month_orders = []
             for order in all_orders:
                 if order.ordered_at.month == month:
