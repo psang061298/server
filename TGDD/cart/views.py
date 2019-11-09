@@ -63,7 +63,7 @@ class CartItemListView(generics.ListCreateAPIView):
             if request.data['quantity'] > product.quantity: # Số lượng k đc lớn hơn số lượng còn trong kho
                 return Response("There are not enough products in stock!")
 
-
+            
 
             promotions  = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=product.category)
             sale_price  = 0
