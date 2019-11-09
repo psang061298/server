@@ -13,6 +13,9 @@ class CategoryList(generics.ListCreateAPIView):
     permission_classes  = (IsAdminOrReadOnly,)
 
     def get_queryset(self):
+        if self.request.user.is_authenticated:
+            if self.request.user.is_admin:
+                return self.queryset.all().order_by('-id')
         return self.queryset.filter(is_active=True)
 
     def list (self, request):

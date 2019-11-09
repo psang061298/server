@@ -15,7 +15,7 @@ class PromotionListView(generics.ListCreateAPIView):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             if self.request.user.is_admin:
-                return self.queryset.order_by('-id')
+                return self.queryset.all().order_by('-id')
         return self.queryset.filter(start_date__lte= date.today(), end_date__gt= date.today()).order_by('-id')
 
     def post (self, request):
@@ -27,9 +27,9 @@ class PromotionListView(generics.ListCreateAPIView):
                 return Response('Only the admin user can perform this action!', status=status.HTTP_400_BAD_REQUEST)
             else:
                 if serializer.is_valid():
-                    cate            = Category.objects.get(pk=serializer.data['category'])
-                    start_day_str   = serializer.data['start_date']
-                    end_day_str     = serializer.data['end_date']
+                    cate            = Category.objects.get(pk=request.data['category'])
+                    start_day_str   = request.data['start_date']
+                    end_day_str     = request.data['end_date']
                     start_date      = date(int(start_day_str[6:10]), int(start_day_str[3:5]), int(start_day_str[0:2]))
                     end_date        = date(int(end_day_str[6:10]), int(end_day_str[3:5]), int(end_day_str[0:2]))
                     if start_date < date.today():
