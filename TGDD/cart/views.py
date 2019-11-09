@@ -28,7 +28,7 @@ class CartListView(generics.ListAPIView):
 #     serializer_class    = CartSerializer
 
 class CartItemListView(generics.ListCreateAPIView):
-    queryset            = CartItem.objects.all()
+    queryset            = CartItem.objects.all().order_by('-id')
     serializer_class    = CartItemSerializer
     permission_classes  = (IsAuthenticated,)
     filter_backends     = [BasicDjangoFilterBackend, DjangoFilterBackend]
@@ -41,12 +41,15 @@ class CartItemListView(generics.ListCreateAPIView):
 
     def list(self, request):
         cart_items = CartItem.objects.filter(cart=request.user.id, paid=False)
+        sale_price = 0
         for item in cart_items:
             promotions = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=item.product.category)
             if  len(promotions) > 0:
                 sale_price = item.product.price * (100 - promotions[0].percent) / 100
-                item.final_price = sale_price * item.quantity
-                item.save()
+            else:
+                sale_price = item.product.price
+            item.final_price = sale_price * item.quantity    
+            item.save()
         queryset = self.get_queryset()
         serializer = CartItemListSerializer(queryset, many=True)
         return Response(data = serializer.data)
@@ -56,12 +59,20 @@ class CartItemListView(generics.ListCreateAPIView):
         if serializer.is_valid():
             cart        = Cart.objects.get(pk=request.user.id)
             product     = Product.objects.get(pk=request.data['product'])
+
+            if request.data['quantity'] > product.quantity: # Số lượng k đc lớn hơn số lượng còn trong kho
+                return Response("There are not enough products in stock!")
+
+
+
             promotions  = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=product.category)
+            sale_price  = 0
             if len(promotions) > 0:
-                sale_price = (product.price * (100 - promotions[0].percent) / 100) * request.data['quantity']
-                serializer.save(cart=cart, final_price=sale_price)
+                sale_price  = (product.price * (100 - promotions[0].percent) / 100)
             else:
-                serializer.save(cart=cart)
+                sale_price  = product.price
+            final_price = sale_price * request.data['quantity']
+            serializer.save(cart=cart, final_price=final_price)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -72,7 +83,6 @@ class CartItemDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self, pk):
         try:
-            # if self.request.user.is_authenticated:
             if self.request.user.is_admin:
                 return CartItem.objects.get(pk=pk)
             else:
@@ -86,16 +96,18 @@ class CartItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
-        cartItem = self.get_object(pk)
-        serializer = CartItemSerializer(cartItem, data=request.data)
+        cartItem    = self.get_object(pk)
+        serializer  = CartItemSerializer(cartItem, data=request.data)
+        sale_price  = 0
         if serializer.is_valid():
             product     = Product.objects.get(pk=request.data['product'])
             promotions  = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=product.category)
             if len(promotions) > 0:
-                sale_price = (product.price * (100 - promotions[0].percent) / 100) * request.data['quantity']
-                serializer.save(final_price=sale_price)
+                sale_price = (product.price * (100 - promotions[0].percent) / 100)
             else:
-                serializer.save()
+                sale_price = product.price
+            final_price = sale_price * request.data['quantity']
+            serializer.save(final_price=final_price)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

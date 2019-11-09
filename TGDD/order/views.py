@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from cart.models import CartItem
 from products.models import Product
+import json
 
 
 class OrderListView(generics.ListCreateAPIView):
@@ -92,13 +93,13 @@ class StatisticsView(generics.ListAPIView):
         queryset = self.queryset.all()
         month = request.GET.get('month', None)
         if month is not None:
+            month = int(month)
             all_orders = Order.objects.all()
             month_orders = []
             for order in all_orders:
-                print(order.ordered_at.month)
                 if order.ordered_at.month == month:
-                    print(order)
                     month_orders.append(order)
-            return Response(month_orders)
-        serializer = StatisticsSerializer(queryset, many=True)
+            serializer = StatisticsSerializer(month_orders, many=True)
+        else:
+            serializer = StatisticsSerializer(queryset, many=True)
         return Response(data=serializer.data)
