@@ -13,7 +13,10 @@ class PromotionListView(generics.ListCreateAPIView):
     serializer_class    = PromotionSerializer
 
     def get_queryset(self):
-        return self.queryset.order_by('-id')
+        if self.request.user.is_authenticated:
+            if self.request.user.is_admin:
+                return self.queryset.order_by('-id')
+        return self.queryset.filter(start_date__lte= date.today(), end_date__gt= date.today()).order_by('-id')
 
     def post (self, request):
         serializer = PromotionCreateUpdateSerializer(data=request.data, context={'request': request})
