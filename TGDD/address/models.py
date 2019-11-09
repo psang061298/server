@@ -11,5 +11,5 @@ class Address (models.Model):
     REQUIRED_FIELDS = ['fullname', 'address', 'phone']
 
     def __str__(self):
-        return self.address
+        return self.fullname
         

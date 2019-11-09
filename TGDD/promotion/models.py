@@ -14,4 +14,4 @@ class Promotion (models.Model):
     REQUIRED_FIELDS = ['title', 'category', 'percent', 'start_date', 'end_date']
 
     def __str__(self):
-        return self.title
+        return "Khuyến mãi áp dụng cho %s từ %s đến %s" % (self.category.title, self.start_date, self.end_date)

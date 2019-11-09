@@ -55,13 +55,21 @@ class CartItemListView(generics.ListCreateAPIView):
         return Response(data = serializer.data)
 
     def post (self, request):
+        cart = Cart.objects.get(pk=request.user.id)
+        items_in_cart = CartItem.objects.filter(cart=cart, paid=False)
+
         serializer = CartItemSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            cart        = Cart.objects.get(pk=request.user.id)
             product     = Product.objects.get(pk=request.data['product'])
 
             if request.data['quantity'] > product.quantity: # Số lượng k đc lớn hơn số lượng còn trong kho
                 return Response("There are not enough products in stock!")
+
+            for item in items_in_cart:
+                if item.product.id == int(request.data['product']):
+                    item.quantity += int(request.data['quantity'])
+                    item.save()
+                    return Response("Added more products to cart successfully!", status=status.HTTP_201_CREATED)
 
             promotions  = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=product.category)
             sale_price  = 0
