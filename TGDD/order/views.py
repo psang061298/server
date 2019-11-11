@@ -15,6 +15,7 @@ from django.core.paginator import Paginator
 from rest_framework.pagination import PageNumberPagination
 from products.paginations import CustomPagination
 import json
+from cart.serializers import CartItemSerializer
 
 
 class OrderListView(generics.ListCreateAPIView):
@@ -127,18 +128,28 @@ class StatisticsView(generics.ListAPIView):
 
         for month in months:
             total_revenue = 0
+            products = []
             for item in queryset:
                 if str(item.ordered_at.month)+"-"+str(item.ordered_at.year) == month:
                     cartItems = CartItem.objects.filter(order=item)
                     for cart in cartItems:
                         total_revenue += cart.quantity
-            stat = {
-                "month": month,
-                "revenue": str(total_revenue)
-            }
-
+                        products.append(cart)
+            serializer = CartItemSerializer(data=products, context={'request': request})
+            if serializer.is_valid():
+                stat = {
+                    "month": month,
+                    "revenue": str(total_revenue),
+                    "products": serializer.data
+                }
+            else:
+                print(serializer.errors)
+                stat = {
+                    "month": month,
+                    "revenue": str(total_revenue),
+                    "products": serializer.data
+                }
             statistics.append(stat)
-        print(statistics)
         # month = request.GET.get('month', None)
         
         # if month is not None:

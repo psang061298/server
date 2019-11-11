@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
 from .models import Member
-from .serializers import UserListSerializer, UserDetailSerializer
+from .serializers import UserListSerializer, UserDetailSerializer, UserProfilePuttingSerializer
 from django_filters.rest_framework import DjangoFilterBackend as BasicDjangoFilterBackend
 from url_filter.integrations.drf import DjangoFilterBackend
 from rest_framework import filters
@@ -12,6 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from rest_framework import status
 from .permissions import IsAdminOrOwner
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 class UserList(generics.ListCreateAPIView):
@@ -56,14 +57,21 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
     def put(self, request, format=None):
         user = self.get_object(request.user.id)
-        serializer = UserDetailSerializer(user, data=request.data)
+        serializer = UserProfilePuttingSerializer(user, data=request.data)
         if serializer.is_valid():
-            serializer.save(active=True)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class PasswordChangingView(generics.UpdateAPIView):
+    queryset = Member.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes  = (IsAuthenticated,)
+    
     def patch(self, request, format=None):
-        user = self.get_object(request.user.id)
+        if request.data['password'] is None or request.data['password'] == "":
+            return Response("Password is required!", status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(self.queryset.all(), pk=int(request.user.id))
         serializer = UserDetailSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save(active=True)

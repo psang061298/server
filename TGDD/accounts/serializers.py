@@ -42,24 +42,11 @@ class UserDetailSerializer(serializers.ModelSerializer): #HyperlinkedModelSerial
         instance.save()
         return instance
 
-# class UserListCreateSerializer(serializers.ModelSerializer):
-#     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
-    
-#     class Meta:
-#         model = Member
-#         extra_kwargs = {'password': {'write_only': True}}
-#         # fields = ['id', 'email', 'password', 'fullname', 'address', 'phone', 'avatar', 'postcode', 'active', 'created_at', 'updated_at']
-#         fields = '__all__'
-#         read_only_fields = ('avatar', 'postcode', 'active', 'created_at', 'updated_at')
-
-#     def create(self, validated_data):
-#         email       = validated_data['email']
-#         password    = validated_data['password']
-#         fullname    = validated_data['fullname']
-#         address     = validated_data['address']
-#         phone       = validated_data['phone']
-
-#         user_obj    = Member(email=email, fullname=fullname, address=address, phone=phone)
-#         user_obj.set_password(password)
-#         user_obj.save()
-#         return validated_data
+class UserProfilePuttingSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(format="%H:%M:%S %d-%m-%Y", read_only=True)
+    updated_at = serializers.DateTimeField(format="%H:%M:%S %d-%m-%Y", read_only=True)
+    password   = serializers.CharField(style={'input_type': 'password'}, read_only=True)
+    class Meta:
+        model = Member
+        fields = ['id', 'email', 'password', 'fullname' ,'gender', 'avatar', 'active', 'created_at', 'updated_at']
+        read_only_fields = ('email', 'password', 'active')
