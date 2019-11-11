@@ -18,6 +18,7 @@ from django.urls import path, include
 from django.conf.urls import url
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from order.views import StatisticsView
+from categories.views import InStockView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,5 +34,6 @@ urlpatterns = [
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('upload_image/', include('upload.urls')),
     path('statistics/', StatisticsView.as_view()),
+    path('in_stock/', InStockView.as_view()),
 
 ]

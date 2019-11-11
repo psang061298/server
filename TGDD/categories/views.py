@@ -5,6 +5,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from .permissions import IsAdminOrReadOnly
+from products.models import Product
 
 
 class CategoryList(generics.ListCreateAPIView):
@@ -33,3 +34,23 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset            = Category.objects.all()
     serializer_class    = CategoryDetailSerializer
     permission_classes  = (IsAdminUser,)
+
+class InStockView(generics.ListAPIView):
+    queryset            = Category.objects.all()
+    serializer_class    = CategorySerializer
+
+    def list(self, request):
+        all_cate = self.queryset.all()
+        products = Product.objects.all()
+        re = []
+        for cate in all_cate:
+            quantity_in_stock = 0
+            for product in products:
+                if product.category == cate:
+                    quantity_in_stock += product.quantity
+            data = {
+                "category": cate.title,
+                "quantity_in_stock": str(quantity_in_stock)
+            }
+            re.append(data)
+        return Response(re)

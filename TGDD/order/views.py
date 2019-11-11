@@ -135,7 +135,7 @@ class StatisticsView(generics.ListAPIView):
                     for cart in cartItems:
                         total_revenue += cart.quantity
                         products.append(cart)
-            serializer = CartItemSerializer(data=products, context={'request': request})
+            serializer = CartItemSerializer(data=products)
             if serializer.is_valid():
                 stat = {
                     "month": month,
