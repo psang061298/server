@@ -6,7 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend as BasicDjangoFilt
 from url_filter.integrations.drf import DjangoFilterBackend
 from rest_framework import filters
 from cart.models import Cart
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
@@ -32,27 +32,40 @@ class UserList(generics.ListCreateAPIView):
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Member.objects.all()
     serializer_class = UserDetailSerializer
-    permission_classes  = (IsAuthenticated,)
-
-    # def get_object(self, pk):
-    #     try:
-    #         return self.queryset.get(pk=pk)
-    #     except ObjectDoesNotExist:
-    #         raise Http404
-
-    # def get(self, request, pk, format=None):
-    #     user = self.get_object(pk)
-    #     serializer = UserListSerializer(user)
-    #     return Response(serializer.data)
-
-    # def put(self, request, pk, format=None):
-    #     user = self.get_object(pk)
-    #     serializer = UserDetailSerializer(user, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes  = (IsAdminUser,)
 
 class UserSignUp(generics.CreateAPIView):
     queryset = Member.objects.all()
     serializer_class = UserListSerializer
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    queryset = Member.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes  = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return self.queryset.get(pk=pk)
+        except:
+            raise Http404
+
+    def get(self, request, format=None):
+        user = self.get_object(request.user.id)
+        serializer = UserListSerializer(user)
+        return Response(serializer.data)
+
+    def put(self, request, format=None):
+        user = self.get_object(request.user.id)
+        serializer = UserDetailSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save(active=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, format=None):
+        user = self.get_object(request.user.id)
+        serializer = UserDetailSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save(active=True)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

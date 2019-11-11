@@ -14,19 +14,20 @@ from products.models import Product
 from django.core.paginator import Paginator
 from rest_framework.pagination import PageNumberPagination
 from products.paginations import CustomPagination
+import json
 
 
 class OrderListView(generics.ListCreateAPIView):
     queryset            = Order.objects.all()
     serializer_class    = OrderSerializer
     permission_classes  = (IsAuthenticated,)
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['status',]
+    filter_backends     = [DjangoFilterBackend]
+    filterset_fields    = ['status',]
     pagination_class = (CustomPagination)
 
     def get_queryset(self):
         if self.request.user.is_admin:
-            return self.queryset.order_by('-id')
+            return self.queryset.all().order_by('-id')
         return self.queryset.filter(buyer=self.request.user).order_by('-id')
 
     def list(self, request):
@@ -48,9 +49,9 @@ class OrderListView(generics.ListCreateAPIView):
             else:
                 total_price += item.product.price
         if total_price == 0:
-            return Response("Can not make a payment! Your cart is empty.")
+            return Response("Can not make a payment! Your cart is empty.", status=status.HTTP_400_BAD_REQUEST)
         if total_price > 99999999:
-            return Response("Total price must be no more than 99999999 VND! Please adjust the quantity of items in your cart!")
+            return Response("Total price must be no more than 99999999 VND! Please adjust the quantity of items in your cart!", status=status.HTTP_400_BAD_REQUEST)
         if request.data['token'] is not None and request.data['token'] != "":
             stripe.api_key = STRIPE_SECRET_KEY
 
@@ -101,23 +102,59 @@ class OrderUpdateView(generics.UpdateAPIView):
 class StatisticsView(generics.ListAPIView):
     queryset            = Order.objects.all().order_by('-id')
     serializer_class    = StatisticsSerializer
-    pagination_class = (CustomPagination)
+    # pagination_class = (CustomPagination)
 
     def list(self, request):
         queryset = self.queryset.all()
-        month = request.GET.get('month', None)
+
+        months = []
+        statistics = []
+        for item in queryset:
+            # if item.ordered_at.month == this_month and item.ordered_at.year == this_year:
+            #     monthly_total += item.products.final_price
+            # elif :
+            #     pass
+            existed = False
+            if len(months) == 0:
+                months.append(str(item.ordered_at.month)+"-"+str(item.ordered_at.year))
+            else:
+                for month in months:
+                    if month == str(item.ordered_at.month)+"-"+str(item.ordered_at.year):
+                        existed = True
+                        break
+                if existed == False:
+                    months.append(str(item.ordered_at.month)+"-"+str(item.ordered_at.year))
+
+        for month in months:
+            total_revenue = 0
+            for item in queryset:
+                if str(item.ordered_at.month)+"-"+str(item.ordered_at.year) == month:
+                    cartItems = CartItem.objects.filter(order=item)
+                    for cart in cartItems:
+                        total_revenue += cart.quantity
+            stat = {
+                "month": month,
+                "revenue": str(total_revenue)
+            }
+
+            statistics.append(stat)
+        print(statistics)
+        # month = request.GET.get('month', None)
         
-        if month is not None:
-            month = int(month)
-            all_orders = Order.objects.all().order_by('-id')
-            month_orders = []
-            for order in all_orders:
-                if order.ordered_at.month == month:
-                    month_orders.append(order)
-            queryset = month_orders
-        serializer = StatisticsSerializer(queryset, many=True)
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        return Response(data=serializer.data)
+        # if month is not None:
+        #     month = int(month)
+        #     all_orders = Order.objects.all().order_by('-id')
+        #     month_orders = []
+        #     for order in all_orders:
+        #         if order.ordered_at.month == month:
+        #             month_orders.append(order)
+        #     queryset = month_orders
+
+        # serializer = StatisticsSerializer(statistics, many=True)
+        # serializer = StatisticsSerializer(queryset, many=True)
+
+        # # page = self.paginate_queryset(queryset)
+        # # if page is not None:
+        # #     serializer = self.get_serializer(page, many=True)
+        # #     return self.get_paginated_response(serializer.data)
+        return Response(statistics)
