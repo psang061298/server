@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from .models import Order
-from .serializers import OrderSerializer, OrderCreateUpdateSerializer, StatisticsSerializer
+from .serializers import OrderSerializer, OrderCreateUpdateSerializer, StatisticsSerializer, OrderCancelForCustomerSerializer
 from rest_framework import generics, status
 from rest_framework import filters
 from rest_framework.response import Response
 import stripe
 from accounts.models import Member
 from TGDD.settings import STRIPE_SECRET_KEY
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from cart.models import CartItem
 from products.models import Product
@@ -16,6 +16,8 @@ from rest_framework.pagination import PageNumberPagination
 from products.paginations import CustomPagination
 import json
 from cart.serializers import CartItemSerializer
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 
 
 class OrderListView(generics.ListCreateAPIView):
@@ -42,9 +44,9 @@ class OrderListView(generics.ListCreateAPIView):
         return Response(data=serializer.data)    
 
     def post (self, request):
-        paid_items = CartItem.objects.filter(cart=request.user.id, paid=False)
+        cart_items = CartItem.objects.filter(cart=request.user.id, in_cart=True)
         total_price = 0
-        for item in paid_items:
+        for item in cart_items:
             if item.final_price > 0:
                 total_price += item.final_price
             else:
@@ -62,7 +64,7 @@ class OrderListView(generics.ListCreateAPIView):
             )
 
             description = ""
-            if request.data['description'] != None and request.data['description'] != "":
+            if request.data['description'] != "":
                 description = request.data['description']
             charge = stripe.Charge.create (
                 amount = int(total_price),
@@ -73,13 +75,16 @@ class OrderListView(generics.ListCreateAPIView):
             print(charge)
         serializer = OrderCreateUpdateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            if request.data['token'] is not None and request.data['token'] != "":
+            if request.data['token'] != "":
+                for item in cart_items:
+                    item.paid    = True
+                    item.save()
                 serializer.save(buyer=request.user, token=charge.id, total_price=total_price, receipt_url=charge.receipt_url)
             else:
                 serializer.save(buyer=request.user, total_price=total_price) 
             new_order = Order.objects.get(pk=serializer.data['id'])
-            for item in paid_items:
-                item.paid       = True
+            for item in cart_items:
+                item.in_cart    = False
                 item.order      = new_order
                 item.save()
                 pro             = Product.objects.get(pk=item.product.id)
@@ -89,15 +94,65 @@ class OrderListView(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class OrderDetailView(generics.RetrieveDestroyAPIView):
+class OrderDetailView(generics.RetrieveAPIView):
     queryset            = Order.objects.all()
     serializer_class    = OrderSerializer
+    # permission_classes  = (IsAdminUser,)
 
 
 class OrderUpdateView(generics.UpdateAPIView):
     queryset            = Order.objects.all()
     serializer_class    = OrderCreateUpdateSerializer
     permission_classes  = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            if self.request.user.is_admin:
+                return Order.objects.get(pk=pk)
+            else:
+                return Order.objects.get(pk=pk, buyer=self.request.user.id)
+        except:
+            raise Http404
+
+    def patch(self, request, pk, format=None):
+        order = get_object_or_404(self.queryset.all(), pk=pk)
+        if not request.user.is_admin:
+            serializer = OrderCancelForCustomerSerializer(order, data=request.data, partial=True)
+            if request.data['status'] == "canceled":
+                if order.status == "waiting" or order.status == "pending":
+                    cart_items = CartItem.objects.filter(order=order)
+                    for item in cart_items:
+                        item.paid = False
+                        item.save()
+                        product = item.product
+                        product.quantity += item.quantity
+                        product.save()
+                else:
+                    return Response("You can not cancel this order because it was already processed!", status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response("You do not have permission to perform this action!", status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer = OrderCreateUpdateSerializer(order, data=request.data, partial=True)
+            cart_items = CartItem.objects.filter(order=order)
+            if order.status == "success" or order.status == "canceled":
+                return Response("This order was done, you are no longer able to change its properties!", status=status.HTTP_400_BAD_REQUEST)
+            if request.data['status'] == "canceled":
+                for item in cart_items:
+                    item.paid = False
+                    item.save()
+                    product = item.product
+                    product.quantity += item.quantity
+                    product.save()
+            elif request.data['status'] == "success":
+                for item in cart_items:
+                    item.paid = True
+                    item.save()
+            else:
+                pass
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StatisticsView(generics.ListAPIView):

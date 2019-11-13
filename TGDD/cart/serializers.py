@@ -16,6 +16,12 @@ class CartItemSerializer (serializers.ModelSerializer):
         fields  = '__all__'
         read_only_fields = ('cart',)
 
+class CartItemUpdateSerializer (serializers.ModelSerializer):
+    class Meta:
+        model   = CartItem
+        fields  = '__all__'
+        read_only_fields = ('cart', 'product')
+
 class CartItemListSerializer (serializers.ModelSerializer):
     class Meta:
         model   = CartItem

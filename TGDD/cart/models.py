@@ -16,9 +16,10 @@ class CartItem(models.Model):
     quantity    = models.PositiveIntegerField()
     final_price = models.FloatField(default=0, null=True)
     paid        = models.BooleanField(default=False, null=True)
+    in_cart     = models.BooleanField(default=True, null=True)
     order       = models.ForeignKey(Order, related_name='products', on_delete=models.CASCADE, null=True)
 
-    REQUIRED_FIELDS = ['product', 'cart', 'quantity']
+    REQUIRED_FIELDS = ['product', 'quantity']
 
     def __str__(self):
         return "Sản phẩm %s có số lượng %s" % (self.product.name, self.quantity)

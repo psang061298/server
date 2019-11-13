@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Cart, CartItem
-from .serializers import CartSerializer, CartItemSerializer, CartItemListSerializer
+from .serializers import CartSerializer, CartItemSerializer, CartItemListSerializer, CartItemUpdateSerializer
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -32,15 +32,15 @@ class CartItemListView(generics.ListCreateAPIView):
     serializer_class    = CartItemSerializer
     permission_classes  = (IsAuthenticated,)
     filter_backends     = [BasicDjangoFilterBackend, DjangoFilterBackend]
-    filter_fields       = ['paid',]
+    filter_fields       = ['paid', 'in_cart']
 
     def get_queryset(self):
         if self.request.user.is_admin:
             return self.queryset.all()
-        return self.queryset.filter(cart=self.request.user.id, paid=False)
+        return self.queryset.filter(cart=self.request.user.id, in_cart=True)
 
     def list(self, request):
-        cart_items = CartItem.objects.filter(cart=request.user.id, paid=False)
+        cart_items = CartItem.objects.filter(cart=request.user.id, in_cart=True)
         sale_price = 0
         for item in cart_items:
             promotions = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=item.product.category)
@@ -56,7 +56,7 @@ class CartItemListView(generics.ListCreateAPIView):
 
     def post (self, request):
         cart = Cart.objects.get(pk=request.user.id)
-        items_in_cart = CartItem.objects.filter(cart=cart, paid=False)
+        items_in_cart = CartItem.objects.filter(cart=cart, in_cart=True)
 
         serializer = CartItemSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -69,7 +69,7 @@ class CartItemListView(generics.ListCreateAPIView):
                 if item.product.id == int(request.data['product']):
                     item.quantity += int(request.data['quantity'])
                     item.save()
-                    return Response("Added more products to cart successfully!", status=status.HTTP_201_CREATED)
+                    return Response("Added more products to cart successfully!", status=status.HTTP_200_OK)
 
             promotions  = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=product.category)
             sale_price  = 0
@@ -103,17 +103,17 @@ class CartItemDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def put(self, request, pk, format=None):
         cartItem    = self.get_object(pk)
-        serializer  = CartItemSerializer(cartItem, data=request.data)
+        serializer  = CartItemUpdateSerializer(cartItem, data=request.data)
         sale_price  = 0
         if serializer.is_valid():
-            product     = Product.objects.get(pk=request.data['product'])
+            product     = cartItem.product
             promotions  = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=product.category)
             if len(promotions) > 0:
                 sale_price = (product.price * (100 - promotions[0].percent) / 100)
             else:
                 sale_price = product.price
             final_price = sale_price * request.data['quantity']
-            serializer.save(final_price=final_price)
+            serializer.save(product=product, final_price=final_price)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
