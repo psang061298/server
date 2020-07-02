@@ -58,10 +58,15 @@ class OrderListView(generics.ListCreateAPIView):
         if request.data['token'] is not None and request.data['token'] != "":
             stripe.api_key = STRIPE_SECRET_KEY
 
-            stripe_customer = stripe.Customer.create(
-                card = request.data['token'],
-                description = request.user.fullname
-            )
+            try:
+                stripe_customer = stripe.Customer.create(
+                    card = request.data['token'],
+                    description = request.user.fullname
+                )
+            except stripe.error.CardError as e:
+                return Response(e.error.message, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response("Something went wrong. Please try again!", status=status.HTTP_400_BAD_REQUEST)
 
             description = ""
             if request.data['description'] != "":

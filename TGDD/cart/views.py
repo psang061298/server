@@ -107,6 +107,8 @@ class CartItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         sale_price  = 0
         if serializer.is_valid():
             product     = cartItem.product
+            if request.data['quantity'] > product.quantity: # Số lượng k đc lớn hơn số lượng còn trong kho
+                return Response("There are not enough products in stock!")
             promotions  = Promotion.objects.filter(start_date__lte= date.today(), end_date__gt= date.today(), category=product.category)
             if len(promotions) > 0:
                 sale_price = (product.price * (100 - promotions[0].percent) / 100)
