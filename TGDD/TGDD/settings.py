@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import cloudinary
+import django_heroku
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -25,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '3%szj-(kwd@pq)lw0$1-75g4wm6zb)geiz7q&6^7x+3+ju^@45'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -183,3 +184,6 @@ SIMPLE_JWT = {
 
 STRIPE_SECRET_KEY = 'sk_test_RmBShYr52xZQBrFEkyFFwVlE00cM9eoYWZ'
 STRIPE_PUBLISHABLE_KEY = 'pk_test_wc4Z30OzjsKmaCId0q71FgpW00UeXBH2ns'
+
+# Activate Django-Heroku.
+django_heroku.settings(locals())
